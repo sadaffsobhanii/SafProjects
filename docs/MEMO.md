@@ -2,8 +2,8 @@
 
 **Your Name:** Sadaf Sobhani  
 **Title of Vibe Coding Project:** LeaveBy — stop guessing when to leave  
-**URL / Web Link:** _Paste the GitHub Pages URL after deploy (expected: https://sadaffsobhanii.github.io/SafProjects/)_  
-**Platform Used:** Cursor (Cloud Agent), with a React + Vite site hosted on GitHub Pages  
+**URL / Web Link:** https://temporary-brisk-mesa-ur7s3gx.vercel.app  
+**Platform Used:** Cursor (Cloud Agent), with a React + Vite site hosted on Vercel  
 
 ## Who is the target audience?
 
@@ -40,7 +40,7 @@ Cursor could turn a homework brief and a commute story into a named product, a v
 
 - Real Calendar + Maps sync needs API keys, OAuth consent screens, and would block a public homework URL.
 - An empty repo (blank README) meant the first agent had no product context until the assignment text was pasted.
-- A public link still needs GitHub Pages enabled on the repository (one Settings click) after the site is on `main`.
+- A stable public link needs the Vercel deploy claimed on the Hobby (personal) plan, or GitHub Pages enabled after the site is on `main`.
 
 ### Learnings
 
