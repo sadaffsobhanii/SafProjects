@@ -1,0 +1,150 @@
+export const MODES = [
+  { id: 'drive', label: 'Drive', verb: 'driving' },
+  { id: 'walk', label: 'Walk', verb: 'walking' },
+  { id: 'transit', label: 'Transit', verb: 'on transit' },
+]
+
+export const PRESETS = [
+  {
+    id: 'gym',
+    label: 'Gym after work',
+    eventName: 'Gym',
+    origin: 'Apartment, Koreatown',
+    destination: 'Equinox, Downtown LA',
+    baseMinutes: { drive: 18, walk: 62, transit: 38 },
+    arriveHour: 20,
+    arriveMinute: 0,
+    buffer: 8,
+  },
+  {
+    id: 'class',
+    label: 'Morning class',
+    eventName: 'MOR-531',
+    origin: 'Home, West Adams',
+    destination: 'USC Marshall',
+    baseMinutes: { drive: 16, walk: 48, transit: 32 },
+    arriveHour: 9,
+    arriveMinute: 0,
+    buffer: 10,
+  },
+  {
+    id: 'lax',
+    label: 'Flight day',
+    eventName: 'LAX — TSA',
+    origin: 'USC campus',
+    destination: 'LAX Terminal 1',
+    baseMinutes: { drive: 32, walk: 0, transit: 78 },
+    arriveHour: 14,
+    arriveMinute: 30,
+    buffer: 25,
+  },
+  {
+    id: 'custom',
+    label: 'Custom trip',
+    eventName: '',
+    origin: '',
+    destination: '',
+    baseMinutes: { drive: 20, walk: 45, transit: 35 },
+    arriveHour: 18,
+    arriveMinute: 0,
+    buffer: 10,
+  },
+]
+
+function hourFromDate(date) {
+  return date.getHours() + date.getMinutes() / 60
+}
+
+/** Los Angeles-style congestion curve. 1 = empty-road time. */
+export function trafficMultiplier(mode, arriveAt) {
+  const h = hourFromDate(arriveAt)
+
+  if (mode === 'walk') {
+    return h >= 21 || h < 6 ? 1.06 : 1
+  }
+
+  if (mode === 'transit') {
+    if (h >= 7 && h < 9.5) return 1.28
+    if (h >= 16 && h < 19) return 1.32
+    if (h >= 9.5 && h < 16) return 1.12
+    return 1.05
+  }
+
+  // drive
+  if (h >= 7 && h < 10) return 1.58
+  if (h >= 15.5 && h < 19) return 1.72
+  if (h >= 19 && h < 21) return 1.22
+  if (h >= 10 && h < 15.5) return 1.18
+  if (h >= 6 && h < 7) return 1.2
+  return 0.92
+}
+
+export function trafficLabel(multiplier) {
+  if (multiplier >= 1.5) return { tone: 'heavy', text: 'Heavy traffic' }
+  if (multiplier >= 1.2) return { tone: 'busy', text: 'Busy roads' }
+  if (multiplier >= 1.05) return { tone: 'light', text: 'Typical flow' }
+  return { tone: 'clear', text: 'Light traffic' }
+}
+
+export function formatTime(date) {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+export function formatDate(date) {
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+export function planTrip({ arriveAt, mode, baseMinutes, bufferMinutes }) {
+  const base = Number(baseMinutes[mode]) || 0
+  if (mode === 'walk' && base <= 0) {
+    return { impossible: true, reason: 'Walking this far is not practical.' }
+  }
+
+  const multiplier = trafficMultiplier(mode, arriveAt)
+  const travel = Math.max(1, Math.round(base * multiplier))
+  const buffer = Number(bufferMinutes) || 0
+  const leaveAt = new Date(arriveAt.getTime() - (travel + buffer) * 60_000)
+  const now = new Date()
+  const minutesUntilLeave = Math.round((leaveAt.getTime() - now.getTime()) / 60_000)
+
+  return {
+    impossible: false,
+    mode,
+    multiplier,
+    travel,
+    buffer,
+    leaveAt,
+    arriveAt,
+    minutesUntilLeave,
+    alreadyLate: leaveAt.getTime() < now.getTime() && arriveAt.getTime() > now.getTime(),
+    missed: arriveAt.getTime() <= now.getTime(),
+  }
+}
+
+export function compareModes(input) {
+  return MODES.map((mode) => ({
+    ...mode,
+    plan: planTrip({ ...input, mode: mode.id }),
+  }))
+}
+
+export function defaultArriveAt(hour, minute) {
+  const date = new Date()
+  date.setHours(hour, minute, 0, 0)
+  if (date.getTime() < Date.now() + 20 * 60_000) {
+    date.setDate(date.getDate() + 1)
+  }
+  return date
+}
+
+export function toDatetimeLocal(date) {
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}

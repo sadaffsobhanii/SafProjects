@@ -1,1 +1,7 @@
+# LeaveBy — setup notes for the next agent
 
+MOR-531 individual vibe-coding assignment.
+
+Build / maintain a public landing page + planner at repo root (`npm run dev`).
+Do not invent a connected Google Calendar unless API credentials exist.
+Keep the core loop: arrive-by time + mode + traffic curve → leave-by time.
