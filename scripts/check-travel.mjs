@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import {
   compareModes,
   defaultArriveAt,
+  estimateBases,
+  leaveStatus,
   planTrip,
   trafficMultiplier,
 } from '../src/travel.js'
@@ -47,5 +49,7 @@ const longWalk = planTrip({
   bufferMinutes: 25,
 })
 assert.equal(longWalk.impossible, true)
+assert.equal(estimateBases(10).walk > 10, true)
+assert.equal(leaveStatus({ ...drive, minutesUntilLeave: 12, missed: false, alreadyLate: false, impossible: false }).tone, 'soon')
 
 console.log('travel checks passed')

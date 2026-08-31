@@ -4,6 +4,29 @@ export const MODES = [
   { id: 'transit', label: 'Transit', verb: 'on transit' },
 ]
 
+export const EVENT_COLORS = ['#039be5', '#33b679', '#d50000', '#f6bf26', '#8e24aa', '#0b8043']
+
+export function estimateBases(driveMinutes) {
+  const drive = Math.max(1, Number(driveMinutes) || 20)
+  return {
+    drive,
+    walk: Math.round(drive * 3.2),
+    transit: Math.round(drive * 1.85),
+  }
+}
+
+export function leaveStatus(plan) {
+  if (plan.impossible) return { text: 'Pick another mode', tone: 'muted' }
+  if (plan.missed) return { text: 'Event already started', tone: 'late' }
+  if (plan.alreadyLate) return { text: 'Leave now', tone: 'late' }
+  if (plan.minutesUntilLeave < 60) {
+    return { text: `Leave in ${plan.minutesUntilLeave} min`, tone: 'soon' }
+  }
+  const hours = Math.floor(plan.minutesUntilLeave / 60)
+  const mins = plan.minutesUntilLeave % 60
+  return { text: `Leave in ${hours}h ${mins}m`, tone: 'ok' }
+}
+
 export const SAMPLE_CALENDAR = [
   {
     id: 'class',
@@ -37,6 +60,17 @@ export const SAMPLE_CALENDAR = [
     arriveMinute: 0,
     baseMinutes: { drive: 18, walk: 62, transit: 38 },
     buffer: 8,
+  },
+  {
+    id: 'dinner',
+    title: 'Dinner',
+    color: '#8e24aa',
+    origin: 'Equinox, Downtown LA',
+    location: 'Bestia, Arts District',
+    arriveHour: 21,
+    arriveMinute: 0,
+    baseMinutes: { drive: 12, walk: 28, transit: 22 },
+    buffer: 6,
   },
 ]
 
