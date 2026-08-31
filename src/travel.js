@@ -8,6 +8,7 @@ export const SAMPLE_CALENDAR = [
   {
     id: 'class',
     title: 'MOR-531',
+    color: '#039be5',
     origin: 'Home, West Adams',
     location: 'USC Marshall',
     arriveHour: 9,
@@ -18,6 +19,7 @@ export const SAMPLE_CALENDAR = [
   {
     id: 'coffee',
     title: 'Coffee with teammate',
+    color: '#33b679',
     origin: 'USC Marshall',
     location: 'Blue Bottle, DTLA',
     arriveHour: 12,
@@ -28,6 +30,7 @@ export const SAMPLE_CALENDAR = [
   {
     id: 'gym',
     title: 'Gym',
+    color: '#d50000',
     origin: 'Apartment, Koreatown',
     location: 'Equinox, Downtown LA',
     arriveHour: 20,
