@@ -59,4 +59,4 @@ There is no further class deliverable. If continuing:
 
 ## Screenshot
 
-_Add 1–2 screenshots of the landing hero and the planner result card (the large leave-by time) before you submit._
+See `docs/screenshots/leaveby_hero.png` and `docs/screenshots/leaveby_gym_leave_by.png`.
