@@ -33,6 +33,9 @@ export default function App() {
   const [home, setHome] = useState('Apartment, Koreatown')
   const [extras, setExtras] = useState([])
   const [reminders, setReminders] = useState({})
+  const [remindOpen, setRemindOpen] = useState(false)
+  const [phone, setPhone] = useState('')
+  const [phoneError, setPhoneError] = useState('')
   const [modes, setModes] = useState({
     class: 'drive',
     coffee: 'transit',
@@ -297,12 +300,17 @@ export default function App() {
               <button
                 type="button"
                 className={reminders[selected.id] ? 'btn maps on' : 'btn maps'}
-                onClick={() =>
-                  setReminders((current) => ({
-                    ...current,
-                    [selected.id]: !current[selected.id],
-                  }))
-                }
+                onClick={() => {
+                  if (reminders[selected.id]) {
+                    setReminders((current) => ({
+                      ...current,
+                      [selected.id]: false,
+                    }))
+                    return
+                  }
+                  setPhoneError('')
+                  setRemindOpen(true)
+                }}
               >
                 {reminders[selected.id]
                   ? 'Reminder on'
@@ -312,6 +320,57 @@ export default function App() {
           </section>
         </main>
       </div>
+
+      {remindOpen ? (
+        <div className="modal-scrim" role="presentation">
+          <form
+            className="modal"
+            role="dialog"
+            aria-labelledby="remind-title"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const digits = phone.replace(/\D/g, '')
+              if (digits.length < 10) {
+                setPhoneError('Enter a phone number so we can text you.')
+                return
+              }
+              setReminders((current) => ({ ...current, [selected.id]: true }))
+              setRemindOpen(false)
+              setPhoneError('')
+            }}
+          >
+            <h3 id="remind-title">What’s your phone number?</h3>
+            <p>We’ll text you when it’s time to leave for {selected.title}.</p>
+            <input
+              type="tel"
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="(555) 555-5555"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              aria-label="Phone number"
+            />
+            {phoneError ? <p className="modal-error">{phoneError}</p> : null}
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn maps"
+                onClick={() => {
+                  setRemindOpen(false)
+                  setPhoneError('')
+                }}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn google">
+                Remind me
+              </button>
+            </div>
+            <p className="drawer-note">Prototype only — no text is actually sent.</p>
+          </form>
+        </div>
+      ) : null}
+
       <ChatWidget events={events} home={home} />
     </>
   )
