@@ -7,6 +7,7 @@ import {
   planTrip,
   trafficMultiplier,
 } from '../src/travel.js'
+import { parseHourMinute, replyTo } from '../src/assistant.js'
 
 const eightPm = defaultArriveAt(20, 0)
 eightPm.setHours(20, 0, 0, 0)
@@ -51,5 +52,13 @@ const longWalk = planTrip({
 assert.equal(longWalk.impossible, true)
 assert.equal(estimateBases(10).walk > 10, true)
 assert.equal(leaveStatus({ ...drive, minutesUntilLeave: 12, missed: false, alreadyLate: false, impossible: false }).tone, 'soon')
+assert.equal(parseHourMinute('', { hour: 6, meridiem: 'pm' }).hour, 18)
+assert.match(
+  replyTo('What time should I leave my house?', {
+    events: [{ title: 'Gym', arriveAt: eightPm, plan: drive }],
+    home: 'home',
+  }),
+  /Leave by/,
+)
 
 console.log('travel checks passed')

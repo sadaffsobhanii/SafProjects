@@ -36,9 +36,40 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 20px;
+  padding: 10px 16px;
   background: var(--white);
   border-bottom: 1px solid var(--line);
+}
+
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hamburger {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: none;
+  display: grid;
+  gap: 5px;
+  align-content: center;
+  justify-items: center;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+
+.hamburger:hover {
+  background: var(--bg);
 }
 
 .brand {
@@ -47,10 +78,68 @@ button {
   gap: 10px;
   font-size: 1.25rem;
   font-weight: 400;
-  color: var(--muted);
+  color: var(--text);
+}
+
+.clock-mark {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
+.menu-scrim {
+  position: fixed;
+  inset: 0;
   border: 0;
+  background: rgba(32, 33, 36, 0.32);
+  z-index: 20;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(300px, 88vw);
+  background: var(--white);
+  z-index: 21;
+  padding: 24px 16px;
+  transform: translateX(-105%);
+  transition: transform 0.2s ease;
+  box-shadow: 2px 0 16px rgba(32, 33, 36, 0.12);
+}
+
+.drawer.open {
+  transform: none;
+}
+
+.drawer-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--line);
   background: none;
-  padding: 0;
+  padding: 14px 4px;
+  color: var(--text);
+}
+
+.drawer-item span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.drawer-item.on span {
+  color: #137333;
+  font-weight: 500;
+}
+
+.drawer-note {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 16px 4px 0;
 }
 
 .top-extra a {
@@ -584,3 +673,116 @@ button {
     grid-column: 3;
   }
 }
+
+.chat {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.chat-fab {
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue);
+  color: var(--white);
+  font-weight: 500;
+  box-shadow: 0 6px 16px rgba(26, 115, 232, 0.35);
+}
+
+.chat-panel {
+  width: min(360px, calc(100vw - 24px));
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(32, 33, 36, 0.18);
+  overflow: hidden;
+}
+
+.chat-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--blue);
+  color: var(--white);
+}
+
+.chat-panel header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.chat-x {
+  border: 0;
+  background: none;
+  color: var(--white);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.chat-log {
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.chat-log p {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.chat-log .bot {
+  background: var(--bg);
+}
+
+.chat-log .user {
+  background: #e8f0fe;
+  color: var(--blue);
+  justify-self: end;
+}
+
+.chat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 8px;
+}
+
+.chat-chips button {
+  border: 1px solid var(--line);
+  background: var(--white);
+  border-radius: 14px;
+  padding: 6px 8px;
+  font-size: 11px;
+  text-align: left;
+  color: var(--muted);
+}
+
+.chat-panel form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.chat-panel input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
