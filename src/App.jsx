@@ -4,9 +4,13 @@ import {
   compareModes,
   defaultArriveAt,
   estimateBases,
+  eventLayout,
   EVENT_COLORS,
-  formatDate,
+  formatRange,
   formatTime,
+  HOUR_HEIGHT,
+  DAY_START_HOUR,
+  DAY_END_HOUR,
   MODES,
   planTrip,
   SAMPLE_CALENDAR,
@@ -30,17 +34,16 @@ export default function App() {
     appleMaps: false,
   })
   const [selectedId, setSelectedId] = useState('gym')
-  const [home, setHome] = useState('Apartment, Koreatown')
+  const [home, setHome] = useState('Home')
   const [extras, setExtras] = useState([])
   const [reminders, setReminders] = useState({})
   const [remindOpen, setRemindOpen] = useState(false)
   const [phone, setPhone] = useState('')
   const [phoneError, setPhoneError] = useState('')
   const [modes, setModes] = useState({
-    class: 'drive',
-    coffee: 'transit',
+    work: 'drive',
     gym: 'drive',
-    dinner: 'walk',
+    dinner: 'drive',
   })
   const [draft, setDraft] = useState(emptyDraft)
 
@@ -51,12 +54,19 @@ export default function App() {
           const arriveAt =
             event.arriveAt instanceof Date
               ? event.arriveAt
-              : defaultArriveAt(event.arriveHour, event.arriveMinute)
+              : defaultArriveAt(event.startHour ?? 12, event.startMinute ?? 0)
+          const durationMin =
+            event.endsAt instanceof Date
+              ? (event.endsAt - arriveAt) / 60_000
+              : (event.endHour * 60 + event.endMinute) -
+                (event.startHour * 60 + event.startMinute)
+          const endsAt = new Date(arriveAt.getTime() + Math.max(30, durationMin || 60) * 60_000)
           const mode = modes[event.id] || 'drive'
           return {
             ...event,
             origin: event.origin || home,
             arriveAt,
+            endsAt,
             mode,
             plan: planTrip({
               arriveAt,
@@ -72,7 +82,6 @@ export default function App() {
 
   const selected = events.find((event) => event.id === selectedId) || events[0]
   const mapsOn = linked.googleMaps || linked.appleMaps
-  const calendarOn = linked.googleCalendar || linked.outlook
 
   function addEvent(event) {
     event.preventDefault()
@@ -87,6 +96,10 @@ export default function App() {
         origin: home,
         color: EVENT_COLORS[list.length % EVENT_COLORS.length],
         arriveAt: new Date(draft.when),
+        endHour: new Date(draft.when).getHours() + 1,
+        endMinute: new Date(draft.when).getMinutes(),
+        startHour: new Date(draft.when).getHours(),
+        startMinute: new Date(draft.when).getMinutes(),
         baseMinutes: estimateBases(draft.driveMinutes),
         buffer: Number(draft.buffer) || 8,
       },
@@ -164,8 +177,9 @@ export default function App() {
 
         <main className="workspace">
           <section className="agenda">
-            <p className="kicker">{calendarOn ? 'Your calendar' : 'Today'}</p>
-            <h2>{formatDate(selected.arriveAt)}</h2>
+            <h2>
+              {selected.arriveAt.toLocaleDateString('en-US', { weekday: 'long' })}
+            </h2>
             <label className="home-field">
               Starting from
               <input
@@ -174,27 +188,59 @@ export default function App() {
                 aria-label="Starting location"
               />
             </label>
-            <ul>
-              {events.map((event) => (
-                <li key={event.id}>
-                  <button
-                    type="button"
-                    className={event.id === selected.id ? 'event on' : 'event'}
-                    onClick={() => setSelectedId(event.id)}
-                  >
-                    <span className="when">{formatTime(event.arriveAt)}</span>
-                    <span className="bar" style={{ background: event.color }} />
-                    <span className="copy">
+            <div className="day">
+              <div
+                className="day-hours"
+                style={{ height: (DAY_END_HOUR - DAY_START_HOUR) * HOUR_HEIGHT }}
+              >
+                {Array.from({ length: DAY_END_HOUR - DAY_START_HOUR }, (_, i) => {
+                  const hour = DAY_START_HOUR + i
+                  const label = new Date()
+                  label.setHours(hour, 0, 0, 0)
+                  return (
+                    <div key={hour} className="day-hour" style={{ height: HOUR_HEIGHT }}>
+                      {label.toLocaleTimeString('en-US', { hour: 'numeric' })}
+                    </div>
+                  )
+                })}
+              </div>
+              <div
+                className="day-track"
+                style={{ height: (DAY_END_HOUR - DAY_START_HOUR) * HOUR_HEIGHT }}
+              >
+                {events.map((event) => {
+                  const box = eventLayout(event)
+                  const split = events.some(
+                    (other) =>
+                      other.id !== event.id &&
+                      other.arriveAt.getTime() === event.arriveAt.getTime(),
+                  )
+                  const right = split && event.lane === 1
+                  return (
+                    <button
+                      key={event.id}
+                      type="button"
+                      className={event.id === selected.id ? 'block on' : 'block'}
+                      style={{
+                        top: box.top,
+                        height: box.height,
+                        left: right ? 'calc(50% + 4px)' : 8,
+                        width: split ? 'calc(50% - 12px)' : 'calc(100% - 16px)',
+                        background: event.color,
+                        borderLeftColor: event.accent || event.color,
+                      }}
+                      onClick={() => setSelectedId(event.id)}
+                    >
                       <strong>{event.title}</strong>
-                      <em>{event.location}</em>
-                    </span>
-                    <span className="leave">
-                      {event.plan.impossible ? '—' : formatTime(event.plan.leaveAt)}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                      <span>
+                        {formatRange(event.arriveAt, event.endsAt)}
+                        {event.location ? ` · ${event.location}` : ''}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
             <form className="add" onSubmit={addEvent}>
               <p className="kicker">Add event</p>
@@ -242,15 +288,6 @@ export default function App() {
               <span className="map-label">{mapsOn ? 'Maps' : 'Preview map'}</span>
             </div>
             <div className="sheet">
-              <p className="kicker">Leave by</p>
-              <h2>{selected.title}</h2>
-              <p className="route-text">
-                {selected.origin}
-                <span> to </span>
-                {selected.location}
-              </p>
-              <p className="arrive">Arrives {formatTime(selected.arriveAt)}</p>
-
               <div className="modes" role="group" aria-label="Travel mode">
                 {MODES.map((item) => (
                   <button
@@ -268,17 +305,37 @@ export default function App() {
 
               {selected.plan.impossible ? (
                 <p className="note">Too far to walk. Choose Drive or Transit.</p>
+              ) : selected.commute === false || selected.plan.travel === 0 ? (
+                <div className="maps-eta">
+                  <p className="trip-min">No commute</p>
+                  <p className="trip-sub">{selected.title} starts at {formatTime(selected.arriveAt)}</p>
+                </div>
               ) : (
-                <>
-                  <p className="eta">{formatTime(selected.plan.leaveAt)}</p>
-                  <p className="note">Leave by this time</p>
-                  <div className="meta">
-                    <span>{selected.plan.travel} min</span>
-                    <span>{selected.plan.buffer} min buffer</span>
-                    <span>{condition.text}</span>
-                  </div>
-                </>
+                <div className="maps-eta">
+                  <p className="trip-min">{selected.plan.travel} min</p>
+                  <p className="trip-sub">{condition.text}</p>
+                  <p className="leave-chip">Leave at {formatTime(selected.plan.leaveAt)}</p>
+                  <p className="arrive-line">Arrive by {formatTime(selected.arriveAt)}</p>
+                </div>
               )}
+
+              <div className="stops">
+                <div>
+                  <i className="pin start" />
+                  <div>
+                    <em>From</em>
+                    <strong>{selected.origin}</strong>
+                  </div>
+                </div>
+                <div>
+                  <i className="pin end" />
+                  <div>
+                    <em>To</em>
+                    <strong>{selected.location || selected.title}</strong>
+                    {selected.location ? <span>{selected.title}</span> : null}
+                  </div>
+                </div>
+              </div>
 
               <div className="alts">
                 {alts.map((alt) => (

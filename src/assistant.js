@@ -2,8 +2,8 @@ import { formatTime } from './travel.js'
 
 export const SUGGESTED_PROMPTS = [
   'What time should I leave my house?',
-  'I end work at 6pm and want to gym before dinner at 7. What should I do?',
-  'Which routine should I hit today?',
+  'I get off work at 6pm. Can I gym before dinner at Bestia at 8:30?',
+  'Which gym routine should I hit today?',
 ]
 
 const WORK_RE =

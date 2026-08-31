@@ -4,7 +4,46 @@ export const MODES = [
   { id: 'transit', label: 'Transit', verb: 'on transit' },
 ]
 
-export const EVENT_COLORS = ['#039be5', '#33b679', '#d50000', '#f6bf26', '#8e24aa', '#0b8043']
+export const DAY_START_HOUR = 8
+export const DAY_END_HOUR = 22
+export const HOUR_HEIGHT = 52
+
+export function atDayTime(hour, minute) {
+  return defaultArriveAt(hour, minute)
+}
+
+export function eventLayout(event) {
+  const start = event.arriveAt
+  const end = event.endsAt || new Date(start.getTime() + 60 * 60_000)
+  const startMin = start.getHours() * 60 + start.getMinutes()
+  const endMin = end.getHours() * 60 + end.getMinutes()
+  const origin = DAY_START_HOUR * 60
+  return {
+    top: ((startMin - origin) / 60) * HOUR_HEIGHT,
+    height: Math.max(22, ((endMin - startMin) / 60) * HOUR_HEIGHT - 4),
+    lane: event.lane || 0,
+  }
+}
+
+export function formatRange(start, end) {
+  const sameMeridiem =
+    start.toLocaleTimeString('en-US', { hour: 'numeric' }).slice(-2) ===
+    end.toLocaleTimeString('en-US', { hour: 'numeric' }).slice(-2)
+  const startLabel = start.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+  const endLabel = end.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+  if (sameMeridiem) {
+    return `${startLabel.replace(/ [AP]M/, '')} – ${endLabel}`
+  }
+  return `${startLabel} – ${endLabel}`
+}
+
+export const EVENT_COLORS = ['#7ec8c4', '#c5b4e3', '#9fd6e8', '#f3c89b', '#34a853', '#0b8043']
 
 export function estimateBases(driveMinutes) {
   const drive = Math.max(1, Number(driveMinutes) || 20)
@@ -29,48 +68,45 @@ export function leaveStatus(plan) {
 
 export const SAMPLE_CALENDAR = [
   {
-    id: 'class',
-    title: 'MOR-531',
-    color: '#039be5',
-    origin: 'Home, West Adams',
-    location: 'USC Marshall',
-    arriveHour: 9,
-    arriveMinute: 0,
-    baseMinutes: { drive: 16, walk: 48, transit: 32 },
+    id: 'work',
+    title: 'Work',
+    color: '#c5e8f2',
+    accent: '#5aa7bc',
+    location: 'Office, Downtown LA',
+    startHour: 9,
+    startMinute: 0,
+    endHour: 18,
+    endMinute: 0,
+    baseMinutes: { drive: 22, walk: 68, transit: 42 },
     buffer: 10,
-  },
-  {
-    id: 'coffee',
-    title: 'Coffee with teammate',
-    color: '#33b679',
-    origin: 'USC Marshall',
-    location: 'Blue Bottle, DTLA',
-    arriveHour: 12,
-    arriveMinute: 30,
-    baseMinutes: { drive: 14, walk: 40, transit: 28 },
-    buffer: 8,
   },
   {
     id: 'gym',
     title: 'Gym',
-    color: '#d50000',
-    origin: 'Apartment, Koreatown',
+    color: '#c8ebe3',
+    accent: '#3d9a86',
     location: 'Equinox, Downtown LA',
-    arriveHour: 20,
-    arriveMinute: 0,
-    baseMinutes: { drive: 18, walk: 62, transit: 38 },
+    startHour: 19,
+    startMinute: 0,
+    endHour: 20,
+    endMinute: 0,
+    origin: 'Office, Downtown LA',
+    baseMinutes: { drive: 14, walk: 28, transit: 22 },
     buffer: 8,
   },
   {
     id: 'dinner',
-    title: 'Dinner',
-    color: '#8e24aa',
-    origin: 'Equinox, Downtown LA',
+    title: 'Dinner with friends',
+    color: '#f6d7b8',
+    accent: '#c4843c',
     location: 'Bestia, Arts District',
-    arriveHour: 21,
-    arriveMinute: 0,
-    baseMinutes: { drive: 12, walk: 28, transit: 22 },
-    buffer: 6,
+    startHour: 20,
+    startMinute: 30,
+    endHour: 22,
+    endMinute: 0,
+    origin: 'Equinox, Downtown LA',
+    baseMinutes: { drive: 12, walk: 24, transit: 20 },
+    buffer: 8,
   },
 ]
 
@@ -131,7 +167,7 @@ export function planTrip({ arriveAt, mode, baseMinutes, bufferMinutes }) {
   }
 
   const multiplier = trafficMultiplier(mode, arriveAt)
-  const travel = Math.max(1, Math.round(base * multiplier))
+  const travel = base <= 0 ? 0 : Math.max(1, Math.round(base * multiplier))
   const buffer = Number(bufferMinutes) || 0
   const leaveAt = new Date(arriveAt.getTime() - (travel + buffer) * 60_000)
   const now = new Date()
