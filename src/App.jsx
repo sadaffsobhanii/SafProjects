@@ -4,13 +4,9 @@ import {
   compareModes,
   defaultArriveAt,
   estimateBases,
-  eventLayout,
   EVENT_COLORS,
   formatRange,
   formatTime,
-  HOUR_HEIGHT,
-  DAY_START_HOUR,
-  DAY_END_HOUR,
   MODES,
   planTrip,
   SAMPLE_CALENDAR,
@@ -177,8 +173,13 @@ export default function App() {
 
         <main className="workspace">
           <section className="agenda">
+            <p className="kicker">Today</p>
             <h2>
-              {selected.arriveAt.toLocaleDateString('en-US', { weekday: 'long' })}
+              {selected.arriveAt.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+              })}
             </h2>
             <label className="home-field">
               Starting from
@@ -188,59 +189,35 @@ export default function App() {
                 aria-label="Starting location"
               />
             </label>
-            <div className="day">
-              <div
-                className="day-hours"
-                style={{ height: (DAY_END_HOUR - DAY_START_HOUR) * HOUR_HEIGHT }}
-              >
-                {Array.from({ length: DAY_END_HOUR - DAY_START_HOUR }, (_, i) => {
-                  const hour = DAY_START_HOUR + i
-                  const label = new Date()
-                  label.setHours(hour, 0, 0, 0)
-                  return (
-                    <div key={hour} className="day-hour" style={{ height: HOUR_HEIGHT }}>
-                      {label.toLocaleTimeString('en-US', { hour: 'numeric' })}
-                    </div>
-                  )
-                })}
-              </div>
-              <div
-                className="day-track"
-                style={{ height: (DAY_END_HOUR - DAY_START_HOUR) * HOUR_HEIGHT }}
-              >
-                {events.map((event) => {
-                  const box = eventLayout(event)
-                  const split = events.some(
-                    (other) =>
-                      other.id !== event.id &&
-                      other.arriveAt.getTime() === event.arriveAt.getTime(),
-                  )
-                  const right = split && event.lane === 1
-                  return (
-                    <button
-                      key={event.id}
-                      type="button"
-                      className={event.id === selected.id ? 'block on' : 'block'}
-                      style={{
-                        top: box.top,
-                        height: box.height,
-                        left: right ? 'calc(50% + 4px)' : 8,
-                        width: split ? 'calc(50% - 12px)' : 'calc(100% - 16px)',
-                        background: event.color,
-                        borderLeftColor: event.accent || event.color,
-                      }}
-                      onClick={() => setSelectedId(event.id)}
-                    >
+            <ul>
+              {events.map((event) => (
+                <li key={event.id}>
+                  <button
+                    type="button"
+                    className={event.id === selected.id ? 'event on' : 'event'}
+                    onClick={() => setSelectedId(event.id)}
+                  >
+                    <span className="when">{formatTime(event.arriveAt)}</span>
+                    <span
+                      className="bar"
+                      style={{ background: event.accent || event.color }}
+                    />
+                    <span className="copy">
                       <strong>{event.title}</strong>
-                      <span>
+                      <em>
                         {formatRange(event.arriveAt, event.endsAt)}
                         {event.location ? ` · ${event.location}` : ''}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+                      </em>
+                    </span>
+                    <span className="leave">
+                      {event.plan.impossible
+                        ? '—'
+                        : formatTime(event.plan.leaveAt)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
 
             <form className="add" onSubmit={addEvent}>
               <p className="kicker">Add event</p>
