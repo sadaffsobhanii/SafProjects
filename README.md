@@ -12,3 +12,12 @@ That Vercel URL is public now. Claim it on your Vercel Hobby account so it does 
 npm install
 npm run dev
 ```
+
+## Saf Speaks portfolio
+
+A simple gold personal site lives in [`portfolio/`](portfolio/): About, Works, Projects, Resume.
+
+```bash
+cd portfolio
+python3 -m http.server 4173 --bind 127.0.0.1
+```
